@@ -34,7 +34,7 @@ You can also build this library as a static or shared library and link it to you
 1. Clone this repository to your local machine:
 
     ```bash
-    git clone https://github.com/sarcast1k/ThreadSafeQueue
+    git clone https://github.com/stuxtwo/ThreadSafeQueue
     ```
 
 2. Create a build directory and configure the project with CMake:

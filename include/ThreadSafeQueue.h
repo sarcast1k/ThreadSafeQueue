@@ -1,56 +1,73 @@
-﻿// include/ThreadSafeQueue.h
-// GNU GPL3 license under sarcast1k@github.com
+#ifndef SAFESTRING_H
+#define SAFESTRING_H
 
-// 
-// ThreadSafeQueue library file
-//
+#include <string>
+#include <vector>
+#include <stdexcept>
+#include <sstream>
+#include <format> // for C++20 formatting
 
-#ifndef THREAD_SAFE_QUEUE_H
-#define THREAD_SAFE_QUEUE_H
+namespace SafeString {
 
-#include <queue>
-#include <mutex>
-#include <condition_variable>
+    /**
+     * concatenates two strings efficiently.
+     *
+     * @param a The first string.
+     * @param b The second string.
+     * @return The concatenated string.
+     */
+    std::string concatenate(const std::string& a, const std::string& b);
 
-template <typename T>
-class ThreadSafeQueue {
-private:
-    std::queue<T> data_queue;
-    std::mutex queue_mutex;
-    std::condition_variable data_available;
+    /**
+     * extracts a substring from a string safely, handling potential out-of-bounds access.
+     *
+     * @param str The source string.
+     * @param start The starting index of the substring.
+     * @param length The length of the substring.
+     * @return the extracted substring.
+     * @throws std::out_of_range If the substring would exceed the string bounds.
+     */
+    std::string safeSubstring(const std::string& str, size_t start, size_t length);
 
-public:
-    // enqueue an item to the queue thread-safely
-    void enqueue(const T& item) {
-        std::unique_lock<std::mutex> lock(queue_mutex);
-        data_queue.push(item);
-        data_available.notify_one();
+    /**
+     * splits a string into a vector of substrings based on a delimiter.
+     *
+     * @param str The string to split.
+     * @param delimiter The delimiter character.
+     * @return a vector of substrings.
+     */
+    std::vector<std::string> split(const std::string& str, char delimiter);
+
+    /**
+     * replaces all occurrences of a substring within a string.
+     *
+     * @param str The source string.
+     * @param from The substring to be replaced.
+     * @param to The replacement substring.
+     * @return the string with replaced substrings.
+     */
+    std::string replace(const std::string& str, const std::string& from, const std::string& to);
+
+    /**
+     * formats a string using a format string and arguments.
+     *
+     * @param formatStr The format string.
+     * @param args The arguments to be formatted.
+     * @return the formatted string.
+     */
+    template<typename... Args>
+    std::string format(const std::string& formatStr, Args... args) {
+        #if __cpp_lib_format >= 201911L // Check for C++20 formatting support
+            return std::vformat(formatStr, std::make_format_args(args...));
+        #else
+            // Fallback for older compilers (less efficient)
+            std::stringstream ss;
+            ss << std::fixed << std::setprecision(2); // e.g. Set precision for floating-point numbers
+            ss << std::format(formatStr, args...); 
+            return ss.str();
+        #endif
     }
 
-    // dequeue an item from the queue thread-safely
-    bool dequeue(T& item) {
-        std::unique_lock<std::mutex> lock(queue_mutex);
-        // wait until an item is available
-        data_available.wait(lock, [this] { return !data_queue.empty(); });
-        if (!data_queue.empty()) {
-            item = data_queue.front();
-            data_queue.pop();
-            return true;
-        }
-        return false;
-    }
+} // namespace SafeString
 
-    // check if the queue is empty thread-safely
-    bool empty() const {
-        std::lock_guard<std::mutex> lock(queue_mutex);
-        return data_queue.empty();
-    }
-
-    // get the size of the queue thread-safely
-    size_t size() const {
-        std::lock_guard<std::mutex> lock(queue_mutex);
-        return data_queue.size();
-    }
-};
-
-#endif
+#endif // SAFESTRING_H

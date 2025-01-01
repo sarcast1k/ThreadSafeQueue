@@ -12,9 +12,6 @@
 #include <mutex>
 #include <condition_variable>
 
-// disable optimizations to ensure thread-safety mechanisms are preserved
-#pragma optimize("", off)
-
 template <typename T>
 class ThreadSafeQueue {
 private:
@@ -56,6 +53,4 @@ public:
     }
 };
 
-// re-enable optimizations
-#pragma optimize("", on)
 #endif

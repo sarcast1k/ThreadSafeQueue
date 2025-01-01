@@ -1,5 +1,4 @@
-# ThreadSafeQueueLibrary
-
+# ThreadSafeQueue
 A simple and efficient C++ thread-safe queue implementation using `std::mutex` and `std::condition_variable`. This library provides a way to enqueue and dequeue items in a thread-safe manner, making it suitable for use in multithreaded applications.
 
 ## Features
